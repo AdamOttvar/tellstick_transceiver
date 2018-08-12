@@ -18,6 +18,7 @@ int t1 = 0; // Latch 1 time only needed for debugging purposes
 int t2 = 0; //latch 2 time only needed for debugging purposes.
 
 // Here is the unique Transmitter code. Use the Serial monitor to identify your Transmitter code.
+unsigned long Sendercode = NOMW; 
 
 void setup() { 
   pinMode(rxPin, INPUT); // Input of 433 MHz receiver
