@@ -8,7 +8,8 @@
 #define blinkdelay 500
 
 //"Creates" sensor1 with transmitter connected to PB0-5
-TellstickSensor Sensor1(4);
+// Which is pin D8 on Arduino UNO
+TellstickSensor Sensor1(0);
 
 
 void setup() {
