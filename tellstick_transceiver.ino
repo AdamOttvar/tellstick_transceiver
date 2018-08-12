@@ -1,78 +1,37 @@
 /*
-* Nexa Receiver
-* Controls 4 relays connected to Aurduino I/O pins.
-* Transmitter codes are hard-coded as a fixed number in the Sketch.
-*
-* The code has been validated to work with the following NEXA transmitters:
-*
-* WBT 912 2ch sender
-* WT2 PRO 2ch Wall sender
-* LMDT 810 Wireless Outdoor motion sensor
-* LMST 606 Wireless Magnetic contact
-* PB3 kit sender
-* Telstick Net
-*
-* Please note that timing varies some between different senders.
-* The Debug Serial port can be used to identifiy Sender codes and also for debug timing issues.
-*
-* Receiver Hardware is a 1 USD 433MHz wireless reciever module bought on Ebay. Search for "433Mhz RF transmitter and receiver arduino" to find a suitable reciever.
-*
-* Receiver functionality is based on original code from
-* Barnaby Gray 12/2008
-* Peter Mead 09/2008
-* "Homeeasy protocol receiver for the new protocol."
-*
-* * The data is encoded on the wire (aerial) as a Manchester code.
-*
-* A latch of 275us high, 2675us low is sent before the data.
-* There is a gap of 10ms between each message.
-*
-* 0 = holding the line high for 275us then low for 275us.
-* 1 = holding the line high for 275us then low for 1225us.
-*
-* The timings seem to vary quite noticably between devices.
-* If this script does not detect your signals try relaxing the timing
-* conditions.
-* *
-* Each actual bit of data is encoded as two bits on the wire as:
-* Data 0 = Wire 01
-* Data 1 = Wire 10
-*
-* The actual message is 32 bits of data (64 wire bits):
-* bits 0-25: the group code - a 26bit number assigned to controllers.
-* bit 26: group flag
-* bit 27: on/off flag
-* bits 28-31: the device code - a 4bit number.
-*
-* The group flag just seems to be a separate set of addresses you can program devices
-* to and doesn't trigger the dim cycle when sending two ONs.
-*/
+ * Telldus transceiver
+ * The setup is currently a 433 MHz transmitter and reveicer kit
+ * from luxorparts and the code is running on an
+ * Arduino Uno Rev3
+ * 
+ * Receiver functionality is based on original code from
+ * Barnaby Gray 12/2008
+ * Peter Mead 09/2008
+ * "Homeeasy protocol receiver for the new protocol."
+ */
 
+// Receiver config =================================
 int rxPin = 12; // Input of 433 MHz receiver
-int txPin0 = 8; // Output to relay 1
-int txPin1 = 9; // Output to relay 2
-int txPin2 = 10; // Output to relay 3
-int txPin3 = 11; // Output to group relay
-
+int ledPin = 13; // Onboard LED
 
 int t1 = 0; // Latch 1 time only needed for debugging purposes
 int t2 = 0; //latch 2 time only needed for debugging purposes.
 
-unsigned long Sendercode = NOMW; // Here is the unique Transmitter code. Use the Serial monitor to identify your Transmitter code.
+// Here is the unique Transmitter code. Use the Serial monitor to identify your Transmitter code.
 
 void setup() { 
   pinMode(rxPin, INPUT); // Input of 433 MHz receiver
-  pinMode(txPin0, OUTPUT); // Output to relay 1
-  pinMode(txPin1, OUTPUT); // Output to relay 2
-  pinMode(txPin2, OUTPUT); // Output to relay 3
-  pinMode(txPin3, OUTPUT); // Output to group relay
   
   Serial.begin(9600);
-  Serial.println ("Nexa Receiver Hard Coded");
+  Serial.println ("Telldus Transceiver");
 }
 
 
 void loop() {
+  receiverLoop();
+}
+
+void receiverLoop(void) {
   int i = 0;
   unsigned long t = 0;
   
@@ -81,7 +40,7 @@ void loop() {
   
   unsigned long sender = 0;
   bool group = false;
-  bool on = false;
+  bool onOff = false;
   unsigned int recipient = 0;
   
   // latch 1
@@ -132,10 +91,11 @@ void loop() {
         sender |= prevBit;
       }
       else if (i == 53) { // 26th data bit
+        // Group command not used by Tellstick Net v2
         group = prevBit;
       }
       else if (i == 55) { // 27th data bit
-        on = prevBit;
+        onOff = prevBit;
       }
       else { // last 4 data bits
         recipient <<= 1;
@@ -150,30 +110,20 @@ void loop() {
   // interpret message
   if (i > 0) { 
     // Print the result on Serial Monitor. Use this to identify your transmitter code.
-    printResult(sender, group, on, recipient);
+    printResult(sender, group, onOff, recipient);
     // This is the check for the correct transimtter code. If code is incorrect then go back to look for new code.
-    if (Sendercode = sender) {
-      // Group command affects all relays, Either all on, or all off.
-      if (group) {
-        digitalWrite(txPin0, on); // Relay 1
-        digitalWrite(txPin1, on); // Relay 2
-        digitalWrite(txPin2, on); // Relay 3
-        digitalWrite(txPin3, on); // Group Relay
-      }
-      else {
-        switch (recipient) { // Check which channel should be activated
-          case 0:
-            digitalWrite(txPin0, on); // Relay 1
-            break;
-          case 1:
-            digitalWrite(txPin1, on); // Relay 2
-            break;
-          case 2:
-            digitalWrite(txPin2, on); // Relay 3
-            break;
-        
+    if (Sendercode == sender) {
+      switch (onOff) {
+        case 0:
+          digitalWrite(ledPin, false);
+          Serial.println("OFF!");
           break;
-        }
+        case 1:
+          digitalWrite(ledPin, true);
+          Serial.println("ON!");
+          break;
+          
+        break;
       }
     }
   }
