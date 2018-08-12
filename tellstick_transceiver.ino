@@ -58,8 +58,6 @@ int txPin3 = 11; // Output to group relay
 int t1 = 0; // Latch 1 time only needed for debugging purposes
 int t2 = 0; //latch 2 time only needed for debugging purposes.
 
-unsigned long Sendercode = 12712226; // Here is the unique Transmitter code. Use the Serial monitor to identify your Transmitter code.
-
 
 void setup() { 
   pinMode(rxPin, INPUT); // Input of 433 MHz receiver
@@ -73,7 +71,7 @@ void setup() {
 }
 
 
-  void loop() {
+void loop() {
   int i = 0;
   unsigned long t = 0;
   
@@ -150,34 +148,35 @@ void setup() {
   
   // interpret message
   if (i > 0) { 
-    printResult(sender, group, on, recipient); // Print the result on Serial Monitor. Use this to identify your transmitter code.
-    if (Sendercode = sender) // This is the check for the correct transimtter code. If code is incorrect then go back to look for new code.
-    if (group) { // Group command affects all relays, Either all on, or all off.
-      digitalWrite(txPin0, on); // Relay 1
-      digitalWrite(txPin1, on); // Relay 2
-      digitalWrite(txPin2, on); // Relay 3
-      digitalWrite(txPin3, on); // Group Relay
-    }
-    else {
-      switch (recipient) { // Check which channel should be activated
-        case 0:
-          digitalWrite(txPin0, on); // Relay 1
+    // Print the result on Serial Monitor. Use this to identify your transmitter code.
+    printResult(sender, group, on, recipient);
+    // This is the check for the correct transimtter code. If code is incorrect then go back to look for new code.
+    if (Sendercode = sender) {
+      // Group command affects all relays, Either all on, or all off.
+      if (group) {
+        digitalWrite(txPin0, on); // Relay 1
+        digitalWrite(txPin1, on); // Relay 2
+        digitalWrite(txPin2, on); // Relay 3
+        digitalWrite(txPin3, on); // Group Relay
+      }
+      else {
+        switch (recipient) { // Check which channel should be activated
+          case 0:
+            digitalWrite(txPin0, on); // Relay 1
+            break;
+          case 1:
+            digitalWrite(txPin1, on); // Relay 2
+            break;
+          case 2:
+            digitalWrite(txPin2, on); // Relay 3
+            break;
+        
           break;
-        case 1:
-          digitalWrite(txPin1, on); // Relay 2
-          break;
-        case 2:
-          digitalWrite(txPin2, on); // Relay 3
-          break;
-      
-        break;
+        }
       }
     }
   }
-
 }
-
-
 
 void printResult(unsigned long sender, bool group, bool on, unsigned int recipient) {
   Serial.print("sender ");
