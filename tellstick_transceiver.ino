@@ -12,7 +12,7 @@
 
 // Receiver config =================================
 int rxPin = 12; // Input of 433 MHz receiver
-int ledPin = 13; // Onboard LED
+int ledPin = 2; // Controlling lamp
 
 int t1 = 0; // Latch 1 time only needed for debugging purposes
 int t2 = 0; //latch 2 time only needed for debugging purposes.
@@ -22,7 +22,7 @@ unsigned long Sendercode = NOMW;
 
 void setup() { 
   pinMode(rxPin, INPUT); // Input of 433 MHz receiver
-  
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   Serial.println ("Telldus Transceiver");
 }
@@ -114,6 +114,7 @@ void receiverLoop(void) {
     printResult(sender, group, onOff, recipient);
     // This is the check for the correct transimtter code. If code is incorrect then go back to look for new code.
     if (Sendercode == sender) {
+      // Needs to be updated to work with IKEA ANSLUTA
       switch (onOff) {
         case 0:
           digitalWrite(ledPin, false);
@@ -121,6 +122,8 @@ void receiverLoop(void) {
           break;
         case 1:
           digitalWrite(ledPin, true);
+          delay(200);
+          digitalWrite(ledPin, false);
           Serial.println("ON!");
           break;
           
