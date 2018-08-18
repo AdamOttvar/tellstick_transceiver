@@ -1,3 +1,4 @@
+#include <OneWire.h>
 #include <TellstickSensor.h>
 
 // Demonstrator TellstickSensor
@@ -11,7 +12,6 @@
 // Which is pin D8 on Arduino UNO
 TellstickSensor Sensor1(0);
 
-
 void setup() {
   Serial.begin(9600);
   Serial.println("TellstickSensor");
@@ -23,16 +23,14 @@ void setup() {
   pinMode(LED, OUTPUT);
 }
 
-void blinkled(){
-  digitalWrite(LED, HIGH);
-  delay(blinkdelay);
-  digitalWrite(LED, LOW);
-}
-
 void loop() {
   Sensor1.Transmitt();            //Transmitts sensor data
   blinkled();
   delay(5000-blinkdelay);         //Set a delay between packages   
 }
 
-
+void blinkled(){
+  digitalWrite(LED, HIGH);
+  delay(blinkdelay);
+  digitalWrite(LED, LOW);
+}
